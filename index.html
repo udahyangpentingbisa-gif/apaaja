@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f5f0">
+  <meta name="description" content="Aplikasi absensi karyawan dan pencatatan pinjaman usaha.">
+  <title>Ruang Hadir - Absensi Karyawan</title>
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <div class="brand">
+        <div class="brand-mark">R</div>
+        <div><div class="brand-name">Ruang Hadir</div><div class="brand-caption">Administrasi karyawan</div></div>
+      </div>
+      <div>
+        <div class="nav-label">Menu utama</div>
+        <nav aria-label="Menu utama">
+          <button class="nav-button active" data-page="attendance"><span class="nav-symbol">▦</span>Absensi</button>
+          <button class="nav-button" data-page="history"><span class="nav-symbol">◷</span>Riwayat 15 Hari</button>
+          <button class="nav-button" data-page="loans"><span class="nav-symbol">Rp</span>Pinjaman</button>
+          <button class="nav-button" data-page="owner"><span class="nav-symbol">⌘</span>Halaman Owner</button>
+        </nav>
+      </div>
+      <div class="aside-bottom">
+        <strong id="storageMode">Data tersimpan di perangkat ini</strong>
+        <span id="storageCaption">Gunakan browser yang sama untuk melihat kembali data.</span>
+      </div>
+    </aside>
+    <main>
+      <div class="topbar">
+        <div class="crumb">Ruang kerja <span>/</span><strong id="crumbTitle">Absensi</strong></div>
+        <div class="topbar-actions"><button class="button secondary small" id="signOut" type="button" hidden>Keluar</button><div class="date-badge" id="todayLabel"></div></div>
+      </div>
+
+      <section class="page active" id="attendancePage">
+        <div class="heading-row">
+          <div><div class="eyebrow">Operasional harian</div><h1>Absensi karyawan</h1><p class="subtitle">Pantau kehadiran dan catatan keuangan tim.</p></div>
+        </div>
+        <div class="overview">
+          <div class="stat"><div class="stat-label">Total karyawan</div><strong class="stat-value" id="totalCount">0</strong><div class="stat-note">Terdaftar</div></div>
+          <div class="stat blue"><div class="stat-label">Hadir hari ini</div><strong class="stat-value" id="presentCount">0</strong><div class="stat-note" id="attendanceRate">0% dari karyawan</div></div>
+        </div>
+        <section class="table-panel" aria-label="Daftar absensi">
+          <div class="panel-head">
+            <div><div class="panel-title">Daftar kehadiran</div><div class="panel-caption">Centang kolom hadir untuk mencatat kehadiran hari ini.</div></div>
+            <label class="date-control">Tanggal <input type="date" id="attendanceDate"></label>
+          </div>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Nama karyawan</th><th>Sisa pinjaman</th><th>Hadir</th></tr></thead>
+            <tbody id="attendanceRows"></tbody>
+          </table></div>
+        </section>
+      </section>
+
+      <section class="page" id="historyPage">
+        <div class="heading-row">
+          <div><div class="eyebrow">Rekap kehadiran</div><h1>Riwayat 15 hari kerja</h1><p class="subtitle">Rekap per karyawan, tidak termasuk Sabtu dan Minggu.</p></div>
+        </div>
+        <section class="table-panel" aria-label="Riwayat absensi 15 hari kerja">
+          <div class="panel-head"><div><div class="panel-title">Kehadiran per karyawan</div><div class="panel-caption">H = hadir, T = tidak hadir, titik = belum dicatat. Hari terbaru tampil di sebelah kiri.</div></div></div>
+          <div class="table-scroll"><table class="history-table">
+            <thead id="historyHead"></thead>
+            <tbody id="historyRows"></tbody>
+          </table></div>
+        </section>
+      </section>
+
+      <section class="page" id="loansPage">
+        <div class="heading-row">
+          <div><div class="eyebrow">Catatan keuangan</div><h1>Pinjaman karyawan</h1><p class="subtitle">Pantau pinjaman, pembayaran, dan sisa pinjaman karyawan.</p></div>
+          <button class="button" id="addLoan">+ Catat pinjaman</button>
+        </div>
+        <div class="loan-summary">
+          <div class="stat coral"><div class="stat-label">Total sisa pinjaman</div><strong class="stat-value" id="loanOutstanding">Rp0</strong><div class="stat-note">Jumlah yang belum dibayar</div></div>
+          <div class="stat blue"><div class="stat-label">Pinjaman aktif</div><strong class="stat-value" id="activeLoanCount">0</strong><div class="stat-note">Catatan pinjaman belum lunas</div></div>
+        </div>
+        <section class="table-panel" aria-label="Daftar pinjaman karyawan">
+          <div class="panel-head"><div><div class="panel-title">Riwayat pinjaman</div><div class="panel-caption">Catat pinjaman dan pembayaran dari akun Owner.</div></div></div>
+          <div class="table-scroll"><table class="loan-table">
+            <thead><tr><th>Karyawan</th><th>Tanggal</th><th>Jumlah pinjaman</th><th>Sudah dibayar</th><th>Sisa</th><th>Aksi</th></tr></thead>
+            <tbody id="loanRows"></tbody>
+          </table></div>
+        </section>
+        <section class="table-panel reports-panel" aria-label="Laporan pembukuan">
+          <div class="panel-head">
+            <div><div class="panel-title">Laporan pembukuan tersimpan</div><div class="panel-caption">Simpan snapshot saldo dan transaksi untuk arsip pembukuan.</div></div>
+            <button class="button secondary small" id="saveReport" type="button">Simpan laporan</button>
+          </div>
+          <div class="table-scroll"><table class="loan-table">
+            <thead><tr><th>Tanggal laporan</th><th>Nama laporan</th><th>Karyawan</th><th>Total pinjaman</th><th>Terbayar</th><th>Sisa</th></tr></thead>
+            <tbody id="reportsRows"></tbody>
+          </table></div>
+        </section>
+      </section>
+
+      <section class="page" id="ownerPage">
+        <div class="heading-row">
+          <div><div class="eyebrow">Pengelolaan tim</div><h1>Halaman Owner</h1><p class="subtitle">Tambah dan ubah data karyawan.</p></div>
+          <button class="button" id="addEmployee">+ Tambah karyawan</button>
+        </div>
+        <div class="owner-note">Kelola data karyawan di sini. Catatan pinjaman dan pembayaran tersedia di menu Pinjaman.</div>
+        <section class="table-panel" aria-label="Kelola karyawan">
+          <div class="panel-head"><div><div class="panel-title">Data karyawan</div><div class="panel-caption" id="ownerCaption">0 karyawan terdaftar</div></div></div>
+          <div class="table-scroll"><table>
+            <thead><tr><th>Nama karyawan</th><th>Sisa pinjaman</th><th>Aksi</th></tr></thead>
+            <tbody id="ownerRows"></tbody>
+          </table></div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="ownerAccessModal" role="dialog" aria-modal="true" aria-labelledby="ownerAccessTitle">
+    <form class="modal" id="ownerAccessForm">
+      <div class="modal-head"><div><h2 id="ownerAccessTitle">Kata sandi Owner</h2><p class="modal-desc" id="ownerAccessDescription"></p></div></div>
+      <div class="form-grid">
+        <div class="field" id="ownerEmailField" hidden><label for="ownerEmail">Email Owner</label><input id="ownerEmail" type="email" autocomplete="username"></div>
+        <div class="field"><label for="ownerPassword">Kata sandi</label><input id="ownerPassword" type="password" required minlength="8" autocomplete="current-password"></div>
+        <div class="field" id="ownerConfirmField"><label for="ownerPasswordConfirm">Ulangi kata sandi</label><input id="ownerPasswordConfirm" type="password" minlength="8" autocomplete="new-password"></div>
+        <div class="field-hint" id="ownerAccessFeedback" role="status" aria-live="polite"></div>
+      </div>
+      <div class="modal-footer"><button class="button secondary" type="button" id="cancelOwnerAccess">Batal</button><button class="button" id="ownerAccessSubmit" type="submit"></button></div>
+    </form>
+  </div>
+  <div class="modal-backdrop" id="employeeModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <form class="modal" id="employeeForm">
+      <div class="modal-head"><div><h2 id="modalTitle">Tambah karyawan</h2><p class="modal-desc">Isi data karyawan di bawah ini.</p></div><button class="close" type="button" id="closeModal" aria-label="Tutup">&times;</button></div>
+      <div class="form-grid">
+        <div class="field"><label for="employeeName">Nama karyawan</label><input id="employeeName" name="name" required maxlength="70" autocomplete="name" placeholder="Contoh: Siti Aminah"></div>
+      </div>
+      <div class="modal-footer"><button class="button secondary" type="button" id="cancelModal">Batal</button><button class="button" type="submit">Simpan data</button></div>
+    </form>
+  </div>
+  <div class="modal-backdrop" id="loanModal" role="dialog" aria-modal="true" aria-labelledby="loanModalTitle">
+    <form class="modal" id="loanForm">
+      <div class="modal-head"><div><h2 id="loanModalTitle">Catat pinjaman</h2><p class="modal-desc">Masukkan jumlah pinjaman dan tanggal pencatatan.</p></div><button class="close" type="button" id="closeLoanModal" aria-label="Tutup">&times;</button></div>
+      <div class="form-grid">
+        <div class="field"><label for="loanEmployee">Karyawan</label><select id="loanEmployee" required></select></div>
+        <div class="field"><label for="loanAmount">Jumlah pinjaman (Rp)</label><input id="loanAmount" type="number" min="1000" step="1000" required></div>
+        <div class="field"><label for="loanDate">Tanggal</label><input id="loanDate" type="date" required></div>
+        <div class="field"><label for="loanNote">Catatan (opsional)</label><textarea id="loanNote" maxlength="160" placeholder="Contoh: Keperluan keluarga"></textarea></div>
+      </div>
+      <div class="modal-footer"><button class="button secondary" type="button" id="cancelLoanModal">Batal</button><button class="button" type="submit">Simpan pinjaman</button></div>
+    </form>
+  </div>
+  <div class="modal-backdrop" id="repaymentModal" role="dialog" aria-modal="true" aria-labelledby="repaymentTitle">
+    <form class="modal" id="repaymentForm">
+      <div class="modal-head"><div><h2 id="repaymentTitle">Catat pembayaran</h2><p class="modal-desc" id="repaymentDescription"></p></div><button class="close" type="button" id="closeRepaymentModal" aria-label="Tutup">&times;</button></div>
+      <div class="form-grid">
+        <div class="field"><label for="repaymentAmount">Jumlah pembayaran (Rp)</label><input id="repaymentAmount" type="number" min="1000" step="1000" required></div>
+        <div class="field"><label for="repaymentDate">Tanggal pembayaran</label><input id="repaymentDate" type="date" required></div>
+      </div>
+      <div class="modal-footer"><button class="button secondary" type="button" id="cancelRepaymentModal">Batal</button><button class="button" type="submit">Simpan pembayaran</button></div>
+    </form>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
