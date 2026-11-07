@@ -32,7 +32,7 @@
     <main>
       <div class="topbar">
         <div class="crumb">Ruang kerja <span>/</span><strong id="crumbTitle">Absensi</strong></div>
-        <div class="topbar-actions"><button class="button secondary small" id="signOut" type="button" hidden>Keluar</button><div class="date-badge" id="todayLabel"></div></div>
+        <div class="topbar-actions"><button class="button secondary small" id="signOut" type="button" aria-label="Keluar dari akun Owner" hidden>Keluar Owner</button><div class="date-badge" id="todayLabel"></div></div>
       </div>
 
       <section class="page active" id="attendancePage">
@@ -60,7 +60,14 @@
           <div><div class="eyebrow">Rekap kehadiran</div><h1>Riwayat 15 hari kerja</h1><p class="subtitle">Rekap per karyawan, tidak termasuk Sabtu dan Minggu.</p></div>
         </div>
         <section class="table-panel" aria-label="Riwayat absensi 15 hari kerja">
-          <div class="panel-head"><div><div class="panel-title">Kehadiran per karyawan</div><div class="panel-caption">H = hadir, T = tidak hadir, titik = belum dicatat. Hari terbaru tampil di sebelah kiri.</div></div></div>
+          <div class="panel-head">
+            <div>
+              <div class="panel-title">Kehadiran per karyawan</div>
+              <div class="panel-caption">H = hadir, T = tidak hadir, titik = belum dicatat. Hari terbaru tampil di sebelah kiri.</div>
+              <div class="panel-caption" id="historyRefreshStatus" role="status" aria-live="polite">Pembaruan otomatis setiap 30 detik saat halaman ini terbuka.</div>
+            </div>
+            <button class="button secondary small" id="refreshHistory" type="button">Perbarui sekarang</button>
+          </div>
           <div class="table-scroll"><table class="history-table">
             <thead id="historyHead"></thead>
             <tbody id="historyRows"></tbody>

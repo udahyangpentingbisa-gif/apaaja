@@ -1,6 +1,6 @@
 # Ruang Hadir
 
-Aplikasi absensi karyawan, pinjaman, pembayaran, dan arsip laporan pembukuan.
+Aplikasi absensi karyawan, pinjaman, pembayaran, dan arsip laporan pembukuan. Riwayat 15 hari memperbarui datanya otomatis setiap 30 detik saat halaman terbuka, tanpa memuat ulang seluruh aplikasi; tombol **Perbarui sekarang** tersedia untuk penyegaran manual. Owner dapat mengakhiri sesi melalui tombol **Keluar Owner**.
 
 ## Menjalankan di komputer
 

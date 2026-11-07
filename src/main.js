@@ -32,7 +32,10 @@ const STORAGE_KEY = 'ruang-hadir-v1';
     let ownerSetupMode = false;
     let ownerAccessDestination = 'owner';
     let currentUser = null;
+    let dataWriteInProgress = false;
     let toastTimer;
+    let historyRefreshTimer = null;
+    let historyRefreshInProgress = false;
 
     function localDateString(date = new Date()) {
       const year = date.getFullYear();
@@ -131,15 +134,24 @@ async function saveData() {
 }
 
 async function updateData(change) {
-  const previous = JSON.stringify(data);
-  change();
-  if (!await saveData()) {
-    data = JSON.parse(previous);
-    render();
+  if (dataWriteInProgress) {
+    showToast('Penyimpanan data sebelumnya masih berlangsung.');
     return false;
   }
-  render();
-  return true;
+  dataWriteInProgress = true;
+  const previous = JSON.stringify(data);
+  try {
+    change();
+    if (!await saveData()) {
+      data = JSON.parse(previous);
+      render();
+      return false;
+    }
+    render();
+    return true;
+  } finally {
+    dataWriteInProgress = false;
+  }
 }
 
     function rupiah(value) {
@@ -256,7 +268,7 @@ async function updateData(change) {
       document.getElementById('storageCaption').textContent = cloudEnabled
         ? currentUser?.email || 'Masuk untuk mengakses data usaha.'
         : 'Mode lokal: data tidak tersinkron antarperangkat.';
-      document.getElementById('signOut').hidden = !cloudEnabled || !currentUser;
+      document.getElementById('signOut').hidden = !ownerAuthenticated;
     }
 
     function renderAttendance() {
@@ -301,6 +313,30 @@ async function updateData(change) {
         const row = document.createElement('tr');
         row.innerHTML = `<td><div class="person"><span class="avatar">${escapeHtml(initials(employee.name))}</span><div class="person-name">${escapeHtml(employee.name)}</div></div></td>${statuses}`;
         historyRows.append(row);
+      }
+    }
+
+    function setHistoryRefreshStatus(message) {
+      document.getElementById('historyRefreshStatus').textContent = message;
+    }
+
+    async function refreshHistoryData() {
+      if (historyRefreshInProgress || dataWriteInProgress || !document.getElementById('historyPage').classList.contains('active') || document.hidden) return;
+      historyRefreshInProgress = true;
+      setHistoryRefreshStatus('Memperbarui riwayat...');
+      try {
+        const latestData = cloudEnabled
+          ? currentUser ? normalizeData(await loadLedger()) : data
+          : loadData();
+        data = latestData;
+        renderHistory();
+        const time = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
+        setHistoryRefreshStatus(`Pembaruan otomatis setiap 30 detik · Terakhir diperbarui ${time}`);
+      } catch (error) {
+        console.error('Riwayat absensi gagal diperbarui.', error);
+        setHistoryRefreshStatus(`Gagal memperbarui riwayat: ${error.message}`);
+      } finally {
+        historyRefreshInProgress = false;
       }
     }
 
@@ -349,6 +385,13 @@ async function updateData(change) {
         loans: 'Pinjaman',
         owner: 'Halaman Owner'
       })[pageName];
+      if (pageName === 'history') {
+        refreshHistoryData();
+      } else {
+        renderAttendance();
+        renderOwner();
+        renderLoans();
+      }
     }
 
     function loadOwnerCredentials() {
@@ -625,19 +668,36 @@ async function updateData(change) {
     });
 
     document.getElementById('signOut').addEventListener('click', async () => {
+      if (!ownerAuthenticated) return;
       try {
         await signOut();
         currentUser = null;
         ownerAuthenticated = false;
-        data = emptyData();
-        reports = [];
+        closeModal(employeeModal, employeeForm);
+        closeModal(loanModal, loanForm);
+        closeModal(repaymentModal, repaymentForm);
+        if (cloudEnabled) {
+          data = emptyData();
+          reports = [];
+        }
         updateStorageCaption();
         render();
         showPage('attendance');
-        openOwnerAccess('attendance');
+        if (cloudEnabled) {
+          openOwnerAccess('attendance');
+        } else {
+          showToast('Anda telah keluar dari Halaman Owner.');
+        }
       } catch (error) {
         console.error('Keluar dari akun gagal.', error);
         showToast(`Tidak dapat keluar: ${error.message}`);
+      }
+    });
+
+    document.getElementById('refreshHistory').addEventListener('click', refreshHistoryData);
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && document.getElementById('historyPage').classList.contains('active')) {
+        refreshHistoryData();
       }
     });
 
@@ -649,6 +709,8 @@ async function updateData(change) {
       }
       updateStorageCaption();
       render();
+      if (historyRefreshTimer !== null) clearInterval(historyRefreshTimer);
+      historyRefreshTimer = setInterval(refreshHistoryData, 30_000);
       if (!cloudEnabled) {
         reports = loadLocalReports();
         renderReports();
